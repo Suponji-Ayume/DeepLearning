@@ -1,0 +1,4 @@
+{
+  "python.analysis.autoImportCompletions": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode"
+}
