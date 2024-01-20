@@ -14,7 +14,7 @@ from torchvision.datasets import FashionMNIST, MNIST
 from tqdm import tqdm
 
 # 导入模型
-from model import AlexNet
+from model import GoogLeNet, Inception
 
 
 # 辅助函数，创建训练数据集的文件夹
@@ -256,7 +256,7 @@ def train_model(model, train_dataloader, valid_dataloader, num_epochs, learning_
     # 为这个数据集创建一个独立的文件夹，用来记录训练过程以及最终模型
     mkdir('../output/{}'.format(dataset_name))
 
-    # 训练结束, 保存模型
+    # 训练结束, 保存模型, 允许覆盖原来的文件
     torch.save(best_model_params, '../output/{}/best_model.pth'.format(dataset_name))
 
     # 将训练过程中的损失值和准确率保存为 DataFrame
@@ -335,7 +335,7 @@ if __name__ == '__main__':
     # 指定 batch_size
     parser.add_argument('-b', '--batch_size',
                         type=int,
-                        default=150,
+                        default=500,
                         help='batch size')
     # 指定线程数
     parser.add_argument('-w', '--num_workers',
@@ -359,13 +359,13 @@ if __name__ == '__main__':
     num_workers = args.num_workers
 
     # 处理数据集，划分为训练集和验证集
-    train_dataloader, valid_dataloader = train_valid_split(dataset, resize=(227, 227),
+    train_dataloader, valid_dataloader = train_valid_split(dataset, resize=(224, 224),
                                                            train_ratio=0.8, batch_size=batch_size,
                                                            shuffle=True, num_workers=num_workers,
                                                            pin_memory=True, persistent_workers=True)
 
     # 实例化模型
-    model = AlexNet()
+    model = GoogLeNet(Inception)
 
     # 分布式训练
     if torch.cuda.device_count() > 1:

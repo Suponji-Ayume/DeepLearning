@@ -19,7 +19,6 @@ class AlexNet(nn.Module):
 
         # 定义激活函数层
         self.ReLU = nn.ReLU()
-        self.Softmax = nn.Softmax(dim=1)
 
         # 第一层卷积层
         self.conv1 = nn.Conv2d(in_channels=1, out_channels=96, kernel_size=11, stride=4, padding=0)
@@ -46,7 +45,6 @@ class AlexNet(nn.Module):
         # 第十一层全连接层
         self.fc11 = nn.Linear(in_features=4096, out_features=10)
 
-
     # 前向传播
     def forward(self, x: torch.Tensor):
         # 将数据加载到设备上
@@ -61,7 +59,7 @@ class AlexNet(nn.Module):
         x = self.ReLU(self.conv7(x))
         x = self.pool8(x)
 
-        x = self.flatten(x) # 平展
+        x = self.flatten(x)  # 平展
 
         x = self.ReLU(self.fc9(x))
         x = F.dropout(x, p=0.5)
@@ -83,4 +81,3 @@ if __name__ == '__main__':
 
     # 实例化网络
     model = AlexNet().to(device)
-

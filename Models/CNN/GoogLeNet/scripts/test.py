@@ -1,13 +1,14 @@
 import argparse
 
 import torch
+import torch.nn as nn
 import torch.utils.data as Data
 from torchvision import transforms
 from torchvision.datasets import MNIST, FashionMNIST
 from tqdm import tqdm
 
 # 导入模型
-from model import AlexNet
+from model import GoogLeNet,Inception
 
 
 # 处理数据集，划分为训练集和验证集
@@ -95,7 +96,7 @@ if __name__ == '__main__':
     # 添加命令行参数
     parser.add_argument('-d', '--dataset',
                         type=str,
-                        default='fashionmnist',
+                        default='MNIST',
                         help='dataset name')
 
     # 获取命令行参数
@@ -111,11 +112,18 @@ if __name__ == '__main__':
     dataset_name = args.dataset
 
     # 实例化模型
-    model = AlexNet()
+    model = GoogLeNet(Inception)
+
+    # 单机多卡验证
+    if torch.cuda.device_count() > 1:
+        model = nn.DataParallel(model)
+
     # 加载模型参数
     model.load_state_dict(torch.load('../output/{}/best_model.pth'.format(dataset_name)))
+    print("加载模型文件成功！")
+
     # 处理数据集
-    test_dataloader = test_data_process(dataset, resize=(227, 227), batch_size=1,
-                                        shuffle=True, num_workers=10)
+    test_dataloader = test_data_process(dataset, resize=(224, 224), batch_size=1,
+                                        shuffle=True, num_workers=4)
     # 测试模型
     test_model(model, test_dataloader, show_detail=False)

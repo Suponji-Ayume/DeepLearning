@@ -89,6 +89,9 @@ def test_model(model, test_dataloader, show_detail=False):
 if __name__ == '__main__':
     # 实例化模型
     model = LeNet5()
+    # 单机多卡验证
+    if torch.cuda.device_count() > 1:
+        model = torch.nn.DataParallel(model)
     # 加载模型参数
     model.load_state_dict(torch.load('../output/FashionMNIST/best_model.pth'))
     # 处理数据集

@@ -3,6 +3,13 @@
   <component name="PublishConfigData" autoUpload="Always" serverName="ubuntu@162.105.92.28:22 password" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
+      <paths name="root@connect.bjb1.seetacloud.com:26327 key">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/root/autodl-tmp/DeepLearning" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
       <paths name="ubuntu@162.105.92.28:22 password">
         <serverdata>
           <mappings>

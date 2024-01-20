@@ -95,7 +95,7 @@ if __name__ == '__main__':
     # 添加命令行参数
     parser.add_argument('-d', '--dataset',
                         type=str,
-                        default='fashionmnist',
+                        default='FashionMNIST',
                         help='dataset name')
 
     # 获取命令行参数
@@ -112,10 +112,13 @@ if __name__ == '__main__':
 
     # 实例化模型
     model = VGGNet_16()
+    # 单机多卡验证
+    if torch.cuda.device_count() > 1:
+        model = torch.nn.DataParallel(model)
     # 加载模型参数
     model.load_state_dict(torch.load('../output/{}/best_model.pth'.format(dataset_name)))
     # 处理数据集
     test_dataloader = test_data_process(dataset, resize=(227, 227), batch_size=1,
-                                        shuffle=True, num_workers=10)
+                                        shuffle=True, num_workers=4)
     # 测试模型
     test_model(model, test_dataloader, show_detail=False)
