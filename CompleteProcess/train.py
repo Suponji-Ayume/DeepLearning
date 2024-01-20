@@ -1,6 +1,7 @@
 import argparse
 import copy
 import os
+import sys
 import time
 
 import matplotlib.pyplot as plt
@@ -10,11 +11,16 @@ import torch
 import torch.nn as nn
 import torch.utils.data as Data
 from torchvision import transforms
-from torchvision.datasets import FashionMNIST, MNIST
+from torchvision.datasets import MNIST, FashionMNIST
 from tqdm import tqdm
 
-# 导入模型
-from model import VGGNet_16
+# 导入所有搭建好的 CNN 网络结构模型
+sys.path.append("..")
+from Models.CNN.LeNet_5.scripts.model import LeNet_5
+from Models.CNN.AlexNet.scripts.model import AlexNet
+from Models.CNN.VGGNet_16.scripts.model import VGGNet_16
+from Models.CNN.GoogLeNet.scripts.model import GoogLeNet, Inception
+# from Models.CNN.ResNet_50.scripts.model import ResNet_50
 
 
 # 辅助函数，创建训练数据集的文件夹
@@ -57,10 +63,10 @@ class _RepeatSampler(object):
 
 
 # 处理数据集，划分为训练集和验证集
-def train_valid_split(dataset, resize: tuple, train_ratio=0.8, batch_size=128,
+def train_valid_split(dataset, resize: tuple, train_ratio=0.8, batch_size=32,
                       shuffle=True, num_workers=8, pin_memory=True, persistent_workers=True):
     # 下载数据集
-    Train_Dataset = dataset(root='../../../../Datasets',
+    Train_Dataset = dataset(root='../Datasets',
                             train=True,
                             transform=transforms.Compose([transforms.Resize(resize), transforms.ToTensor()]),
                             download=True)
@@ -254,10 +260,10 @@ def train_model(model, train_dataloader, valid_dataloader, num_epochs, learning_
                                                               time_elapsed // 60, time_elapsed % 60))
 
     # 为这个数据集创建一个独立的文件夹，用来记录训练过程以及最终模型
-    mkdir('../output/{}'.format(dataset_name))
+    mkdir('../Outputs/{}'.format(dataset_name))
 
     # 训练结束, 保存模型
-    torch.save(best_model_params, '../output/{}/best_model.pth'.format(dataset_name))
+    torch.save(best_model_params, '../Outputs/{}/best_model.pth'.format(dataset_name))
 
     # 将训练过程中的损失值和准确率保存为 DataFrame
     train_process = pd.DataFrame(
@@ -269,7 +275,7 @@ def train_model(model, train_dataloader, valid_dataloader, num_epochs, learning_
             'Valid_Acc': valid_acc_list
         }
     )
-    train_process.to_csv('../output/{}/train_process.csv'.format(dataset_name), index=False)
+    train_process.to_csv('../Outputs/{}/train_process.csv'.format(dataset_name), index=False)
 
     # 打印训练总时间
     print("=" * 70)
@@ -310,14 +316,21 @@ def plot_train_process(train_process: pd.DataFrame, dataset_name: str):
     plt.yticks(np.arange(0, 1.2, 0.2), ['{}%'.format(int(x * 100)) for x in np.arange(0, 1.2, 0.2)])
     plt.legend()
 
-    plt.savefig('../output/{}/train_process.png'.format(dataset_name))
+    plt.savefig('../Outputs/{}/train_process.png'.format(dataset_name))
     # plt.show()
 
 
 if __name__ == '__main__':
     # 允许输入命令行参数
     parser = argparse.ArgumentParser()
-    # 添加命令行参数，指定数据集和参数
+
+    # 添加命令行参数
+    # 指定模型
+    parser.add_argument('-m', '--model',
+                        type=str,
+                        default='GoogLeNet',
+                        help='model name')
+    # 指定数据集
     parser.add_argument('-d', '--dataset',
                         type=str,
                         default='FashionMNIST',
@@ -342,30 +355,66 @@ if __name__ == '__main__':
                         type=int,
                         default=8,
                         help='number of workers')
-
+    # 指定 height weight 大小
+    parser.add_argument('-H', '--height',
+                        type=int,
+                        default=224,
+                        help='height of image')
+    parser.add_argument('-W', '--width',
+                        type=int,
+                        default=224,
+                        help='width of image')
+    # 指定划分训练集和验证集的比例
+    parser.add_argument('-r', '--ratio',
+                        type=float,
+                        default=0.8,
+                        help='ratio of train and valid dataset')
+    # 指定分类数
+    parser.add_argument('-c', '--num_classes',
+                        type=int,
+                        default=10,
+                        help='number of classes')
     # 获取命令行参数
     args = parser.parse_args()
-    # 设置命令行参数与数据集的映射关系
+
+    # 设置数据集与命令行字符串的映射关系
     dataset_map = {
         'FashionMNIST': FashionMNIST,
         'MNIST': MNIST
     }
-    # 根据命令行参数获取数据集
+
+    # 设置模型与命令行字符串的映射关系
+    model_map = {
+        'LeNet_5': LeNet_5,
+        'AlexNet': AlexNet,
+        'VGGNet_16': VGGNet_16,
+        'GoogLeNet': GoogLeNet,
+        # 'ResNet_50': ResNet_50
+    }
+
+    # 根据命令行参数获取对应的模型、数据集以及训练参数
+    model_name = args.model
     dataset = dataset_map[args.dataset]
     dataset_name = args.dataset
     num_epochs = args.num_epochs
     learning_rate = args.learning_rate
     batch_size = args.batch_size
     num_workers = args.num_workers
+    resize = (args.height, args.width)
+    train_ratio = args.ratio
+    num_classes = args.num_classes
 
     # 处理数据集，划分为训练集和验证集
-    train_dataloader, valid_dataloader = train_valid_split(dataset, resize=(28, 28),
-                                                           train_ratio=0.8, batch_size=batch_size,
+    train_dataloader, valid_dataloader = train_valid_split(dataset, resize=resize,
+                                                           train_ratio=train_ratio, batch_size=batch_size,
                                                            shuffle=True, num_workers=num_workers,
                                                            pin_memory=True, persistent_workers=True)
 
-    # 实例化模型
-    model = VGGNet_16()
+    # 根据命令行参数获取对应的模型
+    if model_name == 'GoogLeNet':
+        model = model_map[model_name](Inception, num_classes=num_classes)
+    else:
+        model = model_map[model_name](num_classes=num_classes)
 
     # 分布式训练
     if torch.cuda.device_count() > 1:

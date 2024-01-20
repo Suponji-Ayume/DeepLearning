@@ -1,14 +1,14 @@
 # 导入包
 import torch
 from torch import nn
-from torchsummary import summary
+# from torchsummary import summary
 
 
 # 定义LeNet-5模型
-class LeNet5(nn.Module):
+class LeNet_5(nn.Module):
     # 初始化
-    def __init__(self):
-        super(LeNet5, self).__init__()
+    def __init__(self, num_classes=10):
+        super(LeNet_5, self).__init__()
         # 决定用 GPU 还是 CPU
         if torch.cuda.is_available():
             self.device = torch.device("cuda")
@@ -29,7 +29,7 @@ class LeNet5(nn.Module):
         self.flatten = nn.Flatten()
         self.linear5 = nn.Linear(5 * 5 * 16, out_features=120)
         self.linear6 = nn.Linear(in_features=120, out_features=84)
-        self.linear7 = nn.Linear(in_features=84, out_features=10)
+        self.linear7 = nn.Linear(in_features=84, out_features=num_classes)
 
     def forward(self, x):
         # 将数据加载到 device 上
@@ -72,7 +72,7 @@ if __name__ == '__main__':
     print('Using device:', device)
 
     # 实例化模型
-    model = LeNet5().to(device)
+    model = LeNet_5().to(device)
 
-    # 打印模型结构
-    summary(model, input_size=(1, 28, 28), batch_size=128)
+    # # 打印模型结构
+    # summary(model, input_size=(1, 28, 28), batch_size=128)

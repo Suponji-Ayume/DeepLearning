@@ -73,7 +73,7 @@ class Inception(nn.Module):
 
 # 搭建 GoogLeNet 模型
 class GoogLeNet(nn.Module):
-    def __init__(self, Inception):
+    def __init__(self, Inception, num_classes=10):
         super(GoogLeNet, self).__init__()
 
         # 选择设备
@@ -132,7 +132,7 @@ class GoogLeNet(nn.Module):
                       branch_3_out_channels=(48, 128), branch_4_out_channels=128),
             nn.AdaptiveAvgPool2d(output_size=(1, 1)),
             nn.Flatten(),
-            nn.Linear(in_features=1024, out_features=10)
+            nn.Linear(in_features=1024, out_features=num_classes)
         )
 
         # 权重初始化

@@ -2,9 +2,9 @@ import torch
 import torch.nn as nn
 # from torchsummary import summary
 
-# 定义 VGGNet-16 模型
+# 定义 VGGNet_16 模型
 class VGGNet_16(nn.Module):
-    def __init__(self):
+    def __init__(self, num_classes = 10):
         super(VGGNet_16, self).__init__()
 
         # 选择设备
@@ -114,7 +114,7 @@ class VGGNet_16(nn.Module):
             # # Dropout
             # nn.Dropout(p=0.5),
             # 第三个全连接层
-            nn.Linear(4096, 10)
+            nn.Linear(4096, num_classes)
         )
 
         # 权重初始化

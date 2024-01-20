@@ -4,7 +4,7 @@ from torchvision import transforms
 from torchvision.datasets import MNIST, FashionMNIST
 from tqdm import tqdm
 # 导入模型
-from model import LeNet5
+from model import LeNet_5
 
 
 # 处理数据集，划分为训练集和验证集
@@ -88,7 +88,7 @@ def test_model(model, test_dataloader, show_detail=False):
 
 if __name__ == '__main__':
     # 实例化模型
-    model = LeNet5()
+    model = LeNet_5()
     # 单机多卡验证
     if torch.cuda.device_count() > 1:
         model = torch.nn.DataParallel(model)

@@ -6,7 +6,7 @@ import torch.nn.functional as F
 # 搭建 AlexNet 网络模型
 class AlexNet(nn.Module):
     # 初始化网络结构
-    def __init__(self):
+    def __init__(self, num_classes = 10):
         super(AlexNet, self).__init__()
 
         # 选择设备
@@ -43,7 +43,7 @@ class AlexNet(nn.Module):
         # 第十层全连接层
         self.fc10 = nn.Linear(in_features=4096, out_features=4096)
         # 第十一层全连接层
-        self.fc11 = nn.Linear(in_features=4096, out_features=10)
+        self.fc11 = nn.Linear(in_features=4096, out_features=num_classes)
 
     # 前向传播
     def forward(self, x: torch.Tensor):
