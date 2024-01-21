@@ -338,7 +338,7 @@ if __name__ == '__main__':
     # 指定训练轮次
     parser.add_argument('-e', '--num_epochs',
                         type=int,
-                        default=20,
+                        default=1,
                         help='number of epochs')
     # 指定学习率
     parser.add_argument('-l', '--learning_rate',
@@ -348,22 +348,14 @@ if __name__ == '__main__':
     # 指定 batch_size
     parser.add_argument('-b', '--batch_size',
                         type=int,
-                        default=150,
+                        default=32,
                         help='batch size')
     # 指定线程数
     parser.add_argument('-w', '--num_workers',
                         type=int,
                         default=8,
                         help='number of workers')
-    # 指定 height weight 大小
-    parser.add_argument('-H', '--height',
-                        type=int,
-                        default=224,
-                        help='height of image')
-    parser.add_argument('-W', '--width',
-                        type=int,
-                        default=224,
-                        help='width of image')
+
     # 指定划分训练集和验证集的比例
     parser.add_argument('-r', '--ratio',
                         type=float,
@@ -392,6 +384,15 @@ if __name__ == '__main__':
         # 'ResNet_50': ResNet_50
     }
 
+    # 设置模型与输入图片大小的映射关系
+    model_resize_map = {
+        'LeNet_5': (28, 28),
+        'AlexNet': (227, 227),
+        'VGGNet_16': (224, 224),
+        'GoogLeNet': (224, 224),
+        # 'ResNet_50': (224, 224)
+    }
+
     # 根据命令行参数获取对应的模型、数据集以及训练参数
     model_name = args.model
     dataset = dataset_map[args.dataset]
@@ -400,7 +401,7 @@ if __name__ == '__main__':
     learning_rate = args.learning_rate
     batch_size = args.batch_size
     num_workers = args.num_workers
-    resize = (args.height, args.width)
+    resize = model_resize_map[model_name]
     train_ratio = args.ratio
     num_classes = args.num_classes
 
