@@ -1,13 +1,15 @@
 # 导入包
 import torch
 from torch import nn
+
+
 # from torchsummary import summary
 
 
 # 定义LeNet-5模型
 class LeNet_5(nn.Module):
     # 初始化
-    def __init__(self, num_classes=10):
+    def __init__(self, input_channels=1, num_classes=10):
         super(LeNet_5, self).__init__()
         # 决定用 GPU 还是 CPU
         if torch.cuda.is_available():
@@ -22,7 +24,7 @@ class LeNet_5(nn.Module):
         self.softmax = nn.Softmax(dim=1)
 
         # 按照LeNet-5网络结构顺序定义网络层
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=6, kernel_size=5, padding=2, stride=1)
+        self.conv1 = nn.Conv2d(in_channels=input_channels, out_channels=6, kernel_size=5, padding=2, stride=1)
         self.pool2 = nn.AvgPool2d(kernel_size=2, stride=2)
         self.conv3 = nn.Conv2d(in_channels=6, out_channels=16, kernel_size=5, padding=0, stride=1)
         self.pool4 = nn.AvgPool2d(kernel_size=2, stride=2)

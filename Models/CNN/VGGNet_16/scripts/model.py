@@ -1,10 +1,12 @@
 import torch
 import torch.nn as nn
+
+
 # from torchsummary import summary
 
 # 定义 VGGNet_16 模型
 class VGGNet_16(nn.Module):
-    def __init__(self, num_classes = 10):
+    def __init__(self, input_channels=1, num_classes=10):
         super(VGGNet_16, self).__init__()
 
         # 选择设备
@@ -18,7 +20,7 @@ class VGGNet_16(nn.Module):
         # 第一个卷积块
         self.conv_block_1 = nn.Sequential(
             # 第一个卷积层
-            nn.Conv2d(in_channels=1, out_channels=64, kernel_size=3, stride=1, padding=1),
+            nn.Conv2d(in_channels=input_channels, out_channels=64, kernel_size=3, stride=1, padding=1),
             # 激活函数
             nn.ReLU(),
             # 第二个卷积层
@@ -129,13 +131,13 @@ class VGGNet_16(nn.Module):
             # 判断是否为全连接层
             elif isinstance(m, nn.Linear):
                 # 使用正态分布初始化方法
-                nn.init.normal_(m.weight, 0,0.001)
+                nn.init.normal_(m.weight, 0, 0.001)
                 # 初始化偏置
                 if m.bias is not None:
                     nn.init.constant_(m.bias, 0)
 
     # 前向传播
-    def forward(self,x):
+    def forward(self, x):
         # 将数据加载到设备上
         x = x.to(self.device)
 
@@ -153,6 +155,7 @@ class VGGNet_16(nn.Module):
         x = self.fc_block(x)
 
         return x
+
 
 if __name__ == "__main__":
 

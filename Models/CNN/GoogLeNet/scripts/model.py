@@ -1,5 +1,7 @@
 import torch
 import torch.nn as nn
+
+
 # from torchsummary import summary
 
 
@@ -73,7 +75,7 @@ class Inception(nn.Module):
 
 # 搭建 GoogLeNet 模型
 class GoogLeNet(nn.Module):
-    def __init__(self, Inception, num_classes=10):
+    def __init__(self, Inception, input_channels=1, num_classes=10):
         super(GoogLeNet, self).__init__()
 
         # 选择设备
@@ -86,7 +88,7 @@ class GoogLeNet(nn.Module):
 
         # 第一个模块: 7x7 卷积 + 3x3 最大池化
         self.block_1 = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=64, kernel_size=7, stride=2, padding=3),
+            nn.Conv2d(in_channels=input_channels, out_channels=64, kernel_size=7, stride=2, padding=3),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
         )

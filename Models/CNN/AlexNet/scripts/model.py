@@ -6,7 +6,7 @@ import torch.nn.functional as F
 # 搭建 AlexNet 网络模型
 class AlexNet(nn.Module):
     # 初始化网络结构
-    def __init__(self, num_classes = 10):
+    def __init__(self, input_channels = 1, num_classes = 10):
         super(AlexNet, self).__init__()
 
         # 选择设备
@@ -21,7 +21,7 @@ class AlexNet(nn.Module):
         self.ReLU = nn.ReLU()
 
         # 第一层卷积层
-        self.conv1 = nn.Conv2d(in_channels=1, out_channels=96, kernel_size=11, stride=4, padding=0)
+        self.conv1 = nn.Conv2d(in_channels=input_channels, out_channels=96, kernel_size=11, stride=4, padding=0)
         # 第二层池化层
         self.pool2 = nn.MaxPool2d(kernel_size=3, stride=2, padding=0)
         # 第三层卷积层

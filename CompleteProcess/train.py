@@ -1,18 +1,20 @@
 import argparse
 import copy
-import os
 import sys
 import time
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import torch
 import torch.nn as nn
 import torch.utils.data as Data
 from torchvision import transforms
+from torchvision.datasets import ImageFolder
 from torchvision.datasets import MNIST, FashionMNIST
 from tqdm import tqdm
+
+# 导入自定义的数据集处理函数
+from dataprocessing import *
 
 # 导入所有搭建好的 CNN 网络结构模型
 sys.path.append("..")
@@ -20,7 +22,32 @@ from Models.CNN.LeNet_5.scripts.model import LeNet_5
 from Models.CNN.AlexNet.scripts.model import AlexNet
 from Models.CNN.VGGNet_16.scripts.model import VGGNet_16
 from Models.CNN.GoogLeNet.scripts.model import GoogLeNet, Inception
+
 # from Models.CNN.ResNet_50.scripts.model import ResNet_50
+
+# 设置数据集与命令行字符串的映射关系
+dataset_map = {
+    'FashionMNIST': FashionMNIST,
+    'MNIST': MNIST
+}
+
+# 设置模型与命令行字符串的映射关系
+model_map = {
+    'LeNet_5': LeNet_5,
+    'AlexNet': AlexNet,
+    'VGGNet_16': VGGNet_16,
+    'GoogLeNet': GoogLeNet,
+    # 'ResNet_50': ResNet_50
+}
+
+# 设置模型与输入图片大小的映射关系
+model_resize_map = {
+    'LeNet_5': (28, 28),
+    'AlexNet': (227, 227),
+    'VGGNet_16': (224, 224),
+    'GoogLeNet': (224, 224),
+    # 'ResNet_50': (224, 224)
+}
 
 
 # 辅助函数，创建训练数据集的文件夹
@@ -65,16 +92,32 @@ class _RepeatSampler(object):
 # 处理数据集，划分为训练集和验证集
 def train_valid_split(dataset, resize: tuple, train_ratio=0.8, batch_size=32,
                       shuffle=True, num_workers=8, pin_memory=True, persistent_workers=True):
-    # 下载数据集
-    Train_Dataset = dataset(root='../Datasets',
-                            train=True,
-                            transform=transforms.Compose([transforms.Resize(resize), transforms.ToTensor()]),
-                            download=True)
+    # 选择数据集
+    if dataset == 'FashionMNIST' or dataset == 'MNIST':
+        # 如果是内置数据集，则直接从 torchvision.datasets 中加载数据集
+        train_dataset = dataset_map[dataset](root='../Datasets',
+                                             train=True,
+                                             transform=transforms.Compose(
+                                                 [transforms.Resize(resize), transforms.ToTensor()]),
+                                             download=True)
+    else:
+        print("Processing {} dataset...".format(dataset))
+
+        # 如果不是内置数据集，则从指定路径加载数据集的训练集和验证集
+        path_to_train = '../Datasets/{}/train'.format(dataset)
+        # 归一化训练集和验证集
+        # mean, std = normalize(dataset)
+        # 定义训练集和验证集的处理方法
+        train_transform = transforms.Compose(
+            [transforms.Resize(resize), transforms.ToTensor(),
+             transforms.Normalize(mean=[0.16206951, 0.15108147, 0.1384673], std=[0.24089307, 0.22866206, 0.2188131])])
+        # 加载训练集和验证集
+        train_dataset = ImageFolder(path_to_train, transform=train_transform)
 
     # 随机划分训练集和验证集
-    train_size = int(train_ratio * len(Train_Dataset))
-    valid_size = len(Train_Dataset) - train_size
-    train_data, valid_data = Data.random_split(Train_Dataset, [train_size, valid_size])
+    train_size = int(train_ratio * len(train_dataset))
+    valid_size = len(train_dataset) - train_size
+    train_data, valid_data = Data.random_split(train_dataset, [train_size, valid_size])
 
     # 将训练集和验证集转换为可迭代的 DataLoader 对象
     train_dataloader = MultiEpochsDataLoader(dataset=train_data,
@@ -94,7 +137,7 @@ def train_valid_split(dataset, resize: tuple, train_ratio=0.8, batch_size=32,
 
 
 # 训练模型
-def train_model(model, train_dataloader, valid_dataloader, num_epochs, learning_rate, dataset_name):
+def train_model(model, train_dataloader, valid_dataloader, num_epochs, learning_rate, dataset):
     """
     @param model: 模型名称
     @param train_dataloader: 训练集数据
@@ -260,10 +303,10 @@ def train_model(model, train_dataloader, valid_dataloader, num_epochs, learning_
                                                               time_elapsed // 60, time_elapsed % 60))
 
     # 为这个数据集创建一个独立的文件夹，用来记录训练过程以及最终模型
-    mkdir('../Outputs/{}'.format(dataset_name))
+    mkdir('../Outputs/{}'.format(dataset))
 
     # 训练结束, 保存模型
-    torch.save(best_model_params, '../Outputs/{}/best_model.pth'.format(dataset_name))
+    torch.save(best_model_params, '../Outputs/{}/best_model.pth'.format(dataset))
 
     # 将训练过程中的损失值和准确率保存为 DataFrame
     train_process = pd.DataFrame(
@@ -275,7 +318,7 @@ def train_model(model, train_dataloader, valid_dataloader, num_epochs, learning_
             'Valid_Acc': valid_acc_list
         }
     )
-    train_process.to_csv('../Outputs/{}/train_process.csv'.format(dataset_name), index=False)
+    train_process.to_csv('../Outputs/{}/train_process.csv'.format(dataset), index=False)
 
     # 打印训练总时间
     print("=" * 70)
@@ -287,7 +330,7 @@ def train_model(model, train_dataloader, valid_dataloader, num_epochs, learning_
 
 
 # 绘制训练过程中的损失值和准确率曲线
-def plot_train_process(train_process: pd.DataFrame, dataset_name: str):
+def plot_train_process(train_process: pd.DataFrame, dataset: str):
     """
     @param train_process: 训练过程的 DataFrame
     @return: None
@@ -316,7 +359,7 @@ def plot_train_process(train_process: pd.DataFrame, dataset_name: str):
     plt.yticks(np.arange(0, 1.2, 0.2), ['{}%'.format(int(x * 100)) for x in np.arange(0, 1.2, 0.2)])
     plt.legend()
 
-    plt.savefig('../Outputs/{}/train_process.png'.format(dataset_name))
+    plt.savefig('../Outputs/{}/train_process.png'.format(dataset))
     # plt.show()
 
 
@@ -361,6 +404,11 @@ if __name__ == '__main__':
                         type=float,
                         default=0.8,
                         help='ratio of train and valid dataset')
+    # 指定输入通道数
+    parser.add_argument('-i', '--input_channels',
+                        type=int,
+                        default=1,
+                        help='number of input channels')
     # 指定分类数
     parser.add_argument('-c', '--num_classes',
                         type=int,
@@ -369,34 +417,9 @@ if __name__ == '__main__':
     # 获取命令行参数
     args = parser.parse_args()
 
-    # 设置数据集与命令行字符串的映射关系
-    dataset_map = {
-        'FashionMNIST': FashionMNIST,
-        'MNIST': MNIST
-    }
-
-    # 设置模型与命令行字符串的映射关系
-    model_map = {
-        'LeNet_5': LeNet_5,
-        'AlexNet': AlexNet,
-        'VGGNet_16': VGGNet_16,
-        'GoogLeNet': GoogLeNet,
-        # 'ResNet_50': ResNet_50
-    }
-
-    # 设置模型与输入图片大小的映射关系
-    model_resize_map = {
-        'LeNet_5': (28, 28),
-        'AlexNet': (227, 227),
-        'VGGNet_16': (224, 224),
-        'GoogLeNet': (224, 224),
-        # 'ResNet_50': (224, 224)
-    }
-
     # 根据命令行参数获取对应的模型、数据集以及训练参数
     model_name = args.model
-    dataset = dataset_map[args.dataset]
-    dataset_name = args.dataset
+    dataset = args.dataset
     num_epochs = args.num_epochs
     learning_rate = args.learning_rate
     batch_size = args.batch_size
@@ -404,6 +427,7 @@ if __name__ == '__main__':
     resize = model_resize_map[model_name]
     train_ratio = args.ratio
     num_classes = args.num_classes
+    input_channels = args.input_channels
 
     # 处理数据集，划分为训练集和验证集
     train_dataloader, valid_dataloader = train_valid_split(dataset, resize=resize,
@@ -413,9 +437,9 @@ if __name__ == '__main__':
 
     # 根据命令行参数获取对应的模型
     if model_name == 'GoogLeNet':
-        model = model_map[model_name](Inception, num_classes=num_classes)
+        model = model_map[model_name](Inception, input_channels=input_channels, num_classes=num_classes)
     else:
-        model = model_map[model_name](num_classes=num_classes)
+        model = model_map[model_name](input_channels=input_channels, num_classes=num_classes)
 
     # 分布式训练
     if torch.cuda.device_count() > 1:
@@ -424,7 +448,7 @@ if __name__ == '__main__':
     # 训练模型
     train_process = train_model(model, train_dataloader, valid_dataloader,
                                 num_epochs=num_epochs, learning_rate=learning_rate,
-                                dataset_name=dataset_name)
+                                dataset=dataset)
 
     # 绘制训练过程中的损失值和准确率曲线
-    plot_train_process(train_process, dataset_name=dataset_name)
+    plot_train_process(train_process, dataset=dataset)

@@ -1,26 +1,26 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="ububtu@162.105.85.59" remoteFilesAllowedToDisappearOnAutoupload="false" confirmBeforeUploading="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="Lab_2卡" confirmBeforeUploading="false">
     <option name="confirmBeforeUploading" value="false" />
     <serverData>
-      <paths name="root@connect.bjb1.seetacloud.com:26327 key">
+      <paths name="AutoDL_RTX4090">
         <serverdata>
           <mappings>
             <mapping deploy="/root/autodl-tmp/DeepLearning" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
-      <paths name="ububtu@162.105.85.59">
-        <serverdata>
-          <mappings>
-            <mapping deploy="/home/ubuntu/diskC/zhaohaonan/DeepLearning" local="$PROJECT_DIR$" web="/" />
-          </mappings>
-        </serverdata>
-      </paths>
-      <paths name="ubuntu@162.105.92.28:22 password">
+      <paths name="Lab_2卡">
         <serverdata>
           <mappings>
             <mapping deploy="/home/ubuntu/diskH/zhaohaonan/DeepLearning" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="Lab_4卡">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/ubuntu/diskC/zhaohaonan/DeepLearning" local="$PROJECT_DIR$" web="/" />
           </mappings>
         </serverdata>
       </paths>
